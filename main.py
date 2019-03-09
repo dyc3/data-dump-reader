@@ -42,6 +42,14 @@ def get_all_user_ids(source_path: Path):
 
 	return user_ids
 
+def get_full_name_facebook(user_id):
+	resp = requests.get("https://www.facebook.com/" + str(user_id))
+	resp.raise_for_status()
+
+	soup = BeautifulSoup(resp.text)
+	full_name = soup.find(id="fb-timeline-cover-name").find("a").getText()
+	return full_name
+
 def read_data_dump(path: Path):
 	user_ids = get_all_user_ids(path)
 	print(user_ids)
