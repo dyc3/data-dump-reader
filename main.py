@@ -7,8 +7,6 @@ from bs4 import BeautifulSoup
 
 INPUT_FOLDER = Path("./sample/") # TODO: let the user specify folder
 
-app = Flask(__name__)
-
 users = []
 messages = []
 
@@ -71,20 +69,42 @@ def read_data_dump(path: Path):
 		print(u.id, u.full_name)
 
 def render_user_list():
-	pass
+	rendered = ""
+
+	for user in users:
+		item = "<li>"
+		item += user.full_name if user.full_name else user.id
+		item += "</li>"
+		rendered += item
+
+	return rendered
 
 def render_photo_list():
-	pass
+	rendered = ""
+	for i in (INPUT_FOLDER / "photos").iterdir():
+		item = '<img src="/photos/{}" />'.format(i.name)
+		rendered += item
+	return rendered
+
+def create_app():
+	app = Flask(__name__)
+	def run_on_start(*args, **argv):
+		read_data_dump(INPUT_FOLDER)
+	run_on_start()
+	return app
+app = create_app()
 
 @app.route("/")
 def index():
-	read_data_dump(INPUT_FOLDER)
-
 	with open("./templates/index.html") as f:
-		full_text = f.read()
-		full_text.replace("$USER_LIST", render_user_list())
-		full_text.replace("$PHOTO_LIST", render_photo_list())
+		full_text = f.read().replace("$USER_LIST", render_user_list()) \
+							.replace("$PHOTO_LIST", render_photo_list())
 		return full_text
 
+@app.route("/photos/<filename>")
+def get_photo(filename):
+	with (INPUT_FOLDER / "photos" / filename).open("rb") as f:
+		return f.read()
+
 if __name__ == "__main__":
-	read_data_dump(INPUT_FOLDER)
+	app.run()
