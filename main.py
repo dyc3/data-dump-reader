@@ -1,9 +1,15 @@
 #!/usr/bin/env python3
+import PIL.ExifTags
 from flask import Flask
 app = Flask(__name__)
 
 users = []
 messages = []
+
+def get_exif(string): #string is image root
+    img = PIL.Image.open(string)
+    exif_data = img._getexif()
+    return exif_data
 
 class User(object):
 	def __init__():
