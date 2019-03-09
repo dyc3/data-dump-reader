@@ -1,6 +1,12 @@
 #!/usr/bin/env python3
 import PIL.ExifTags
 from flask import Flask
+from pathlib import Path
+import requests
+from bs4 import BeautifulSoup
+
+INPUT_FOLDER = Path("./sample/") # TODO: let the user specify folder
+
 app = Flask(__name__)
 
 users = []
@@ -25,6 +31,24 @@ class Message(object):
 	def get_from_user() -> User:
 		pass
 
+def get_all_user_ids(source_path: Path):
+	user_ids = []
+
+	with source_path.joinpath("./friends.html").open("r") as f:
+		full_text = f.read()
+		soup = BeautifulSoup(full_text)
+		for element in soup.find_all("div", class_="user"):
+			user_ids += [element.find("div", class_="id").getText().strip()]
+
+	return user_ids
+
+def read_data_dump(path: Path):
+	user_ids = get_all_user_ids(path)
+	print(user_ids)
+
 @app.route("/")
 def index():
 	return "Hello world"
+
+if __name__ == "__main__":
+	read_data_dump(INPUT_FOLDER)
