@@ -70,9 +70,21 @@ def read_data_dump(path: Path):
 
 		print(u.id, u.full_name)
 
+def render_user_list():
+	pass
+
+def render_photo_list():
+	pass
+
 @app.route("/")
 def index():
-	return "Hello world"
+	read_data_dump(INPUT_FOLDER)
+
+	with open("./templates/index.html") as f:
+		full_text = f.read()
+		full_text.replace("$USER_LIST", render_user_list())
+		full_text.replace("$PHOTO_LIST", render_photo_list())
+		return full_text
 
 if __name__ == "__main__":
 	read_data_dump(INPUT_FOLDER)
