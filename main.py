@@ -18,12 +18,12 @@ def get_exif(string): #string is image root
     return exif_data
 
 class User(object):
-	def __init__():
+	def __init__(self):
 		self.id = None
 		self.full_name = None
 
 class Message(object):
-	def __init__():
+	def __init__(self):
 		self.from_user_id = None
 		self.to_user_id = None
 		self.text = ""
@@ -44,15 +44,31 @@ def get_all_user_ids(source_path: Path):
 
 def get_full_name_facebook(user_id):
 	resp = requests.get("https://www.facebook.com/" + str(user_id))
-	resp.raise_for_status()
+	if resp.status_code != 200:
+		print("failed to get full name for {}, got response {}".format(user_id, resp.status_code))
+		return None
 
-	soup = BeautifulSoup(resp.text)
-	full_name = soup.find(id="fb-timeline-cover-name").find("a").getText()
-	return full_name
+	try:
+		soup = BeautifulSoup(resp.text)
+		full_name = soup.find(id="fb-timeline-cover-name").find("a").getText()
+		return full_name
+	except:
+		print("failed to parse full name for", user_id)
+		return None
 
 def read_data_dump(path: Path):
+	global users
+
 	user_ids = get_all_user_ids(path)
 	print(user_ids)
+
+	for i in user_ids:
+		u = User()
+		u.id = i
+		u.full_name = get_full_name_facebook(i)
+		users += [u]
+
+		print(u.id, u.full_name)
 
 @app.route("/")
 def index():
