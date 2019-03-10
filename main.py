@@ -135,12 +135,15 @@ def render_conversations():
 		user = users[i]
 		convo = get_coversation_with(user)
 
-		item = '<div class="tab-pane fade" id="msgs_{0}" role="tabpanel" aria-labelledby="msgs_{0}">'.format(user.id, "show active" if i == 0 else "")
+		item = '<div class="tab-pane fade" id="msgs_{0}" role="tabpanel" aria-labelledby="msgs_{0}">'.format(user.id)
 		for msg in convo:
-			item += '<div>'
 			from_user = msg.get_from_user()
-			# if from_user ==
-			item += '<strong>{}</strong>: {}'.format(from_user.full_name if from_user.full_name else from_user.id, msg.text)
+
+			item += '<div class={}>'.format("text-right" if msg.from_user_id == target_user.id else "")
+			item += '<div class="{}">'.format("message msg-sender" if msg.from_user_id == target_user.id else "message")
+			item += '<span class="msg-from text-muted">{}</span>'.format(from_user.full_name if from_user.full_name else from_user.id)
+			item += '<span class="msg-content">{}</span>'.format(msg.text)
+			item += '</div>'
 			item += '</div>'
 		item += '</div>'
 
