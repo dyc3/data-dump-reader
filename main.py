@@ -127,10 +127,8 @@ def read_data_dump(path: Path):
 def render_user_list():
 	rendered = ""
 
-	first = True # FIXME: this is terrible, im sorry
 	for user in users:
-		item = '<a class="nav-link" id="msgs_{0}_tab" data-toggle="pill" href="#msgs_{0}" role="tab" aria-controls="v-pills-home" aria-selected="true">{1}</a>'.format(user.id, user.full_name if user.full_name else user.id, "active" if first else "")
-		first = False
+		item = '<a class="nav-link" id="msgs_{0}_tab" data-toggle="pill" href="#msgs_{0}" role="tab" aria-controls="v-pills-home" aria-selected="true">{1}</a>'.format(user.id, user.full_name if user.full_name else user.id)
 		rendered += item
 
 	return rendered
