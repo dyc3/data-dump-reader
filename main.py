@@ -6,6 +6,7 @@ from pathlib import Path
 import requests, json
 from bs4 import BeautifulSoup
 import watson
+from datetime import datetime
 
 INPUT_FOLDER = Path("./sample/") # TODO: let the user specify folder
 
@@ -32,6 +33,8 @@ class Message(object):
 		self.from_user_id = None
 		self.to_user_id = None
 		self.text = ""
+		self.timestamp = None
+		self.sentiment = {}
 
 	def get_from_user(self) -> User:
 		return get_user_by_id(self.from_user_id)
@@ -92,6 +95,9 @@ def get_all_messages(source_path: Path):
 			m.from_user_id = element.find("span", class_="from").getText().strip()
 			m.to_user_id = element.find("span", class_="to").getText().strip()
 			m.text = element.find("span", class_="text").getText().strip()
+			unix_time = int(element.find("span", class_="time_stamp").getText().strip())
+			m.timestamp = datetime.utcfromtimestamp(unix_time)
+			m.sentiment = watson.get_sentiment(m)
 			messages += [m]
 
 	return messages
@@ -143,6 +149,26 @@ def render_conversations():
 			item += '<div class="{}">'.format("message msg-sender" if msg.from_user_id == target_user.id else "message")
 			item += '<span class="msg-from text-muted">{}</span>'.format(from_user.full_name if from_user.full_name else from_user.id)
 			item += '<span class="msg-content">{}</span>'.format(msg.text)
+			item += '<div class="msg-info">'
+			if msg.sentiment:
+				for tone in msg.sentiment["document_tone"]["tones"]:
+					target_colors = {
+						"joy": (66, 244, 197),
+						"analytical": (95, 239, 82),
+						"anger": (244, 94, 65),
+						"confident": (255, 255, 61),
+						"fear": (239, 82, 236),
+						"tentative": (255, 61, 200),
+						"sadness": (94, 83, 239),
+					}
+					tone_color = [str(c * tone["score"]) for c in target_colors[tone["tone_id"]]]
+
+					item += '<span class="badge badge-pill {}" style="background-color:rgb({})">'.format("badge-primary", ",".join(tone_color))
+					item += '{}: {:.1f}%'.format(tone["tone_name"], tone["score"] * 100)
+					item += '</span>'
+
+			item += '<span class="msg-time text-muted">{}</span>'.format(msg.timestamp.strftime('%-I:%M %p'))
+			item += '</div>'
 			item += '</div>'
 			item += '</div>'
 		item += '</div>'
