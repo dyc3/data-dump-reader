@@ -34,6 +34,9 @@ class Message(object):
 		return get_user_by_id(self.to_user_id)
 
 def get_user_by_id(user_id):
+	if user_id == target_user.id:
+		return target_user
+
 	for u in users:
 		if u.id == user_id:
 			return u
@@ -72,8 +75,23 @@ def get_full_name_facebook(user_id):
 		print("failed to parse full name for", user_id)
 		return None
 
+def get_all_messages(source_path: Path):
+	messages = []
+
+	with source_path.joinpath("./msg.html").open("r") as f:
+		full_text = f.read()
+		soup = BeautifulSoup(full_text)
+		for element in soup.find_all("div", class_="message"):
+			m = Message()
+			m.from_user_id = element.find("span", class_="from").getText().strip()
+			m.to_user_id = element.find("span", class_="to").getText().strip()
+			m.text = element.find("span", class_="text").getText().strip()
+			messages += [m]
+
+	return messages
+
 def read_data_dump(path: Path):
-	global users
+	global users, target_user, messages
 
 	user_ids = get_all_user_ids(path)
 	print(user_ids)
@@ -86,21 +104,49 @@ def read_data_dump(path: Path):
 
 		print(u.id, u.full_name)
 
+	target_user = users[0]
+	if not target_user.full_name: # FIXME: this is just for presenting
+		target_user.full_name = "Jane Doe"
+	users = users[1:]
+
+	messages = get_all_messages(path)
+
+
 def render_user_list():
 	rendered = ""
 
+	first = True # FIXME: this is terrible, im sorry
 	for user in users:
-		item = "<li>"
-		item += user.full_name if user.full_name else user.id
-		item += "</li>"
+		item = '<a class="nav-link" id="msgs_{0}_tab" data-toggle="pill" href="#msgs_{0}" role="tab" aria-controls="v-pills-home" aria-selected="true">{1}</a>'.format(user.id, user.full_name if user.full_name else user.id, "active" if first else "")
+		first = False
 		rendered += item
 
+	return rendered
+
+def render_conversations():
+	rendered = ""
+	for i in range(len(users)):
+		user = users[i]
+		convo = get_coversation_with(user)
+
+		item = '<div class="tab-pane fade" id="msgs_{0}" role="tabpanel" aria-labelledby="msgs_{0}">'.format(user.id, "show active" if i == 0 else "")
+		for msg in convo:
+			item += '<div>'
+			from_user = msg.get_from_user()
+			# if from_user ==
+			item += '<strong>{}</strong>: {}'.format(from_user.full_name if from_user.full_name else from_user.id, msg.text)
+			item += '</div>'
+		item += '</div>'
+
+		rendered += item
 	return rendered
 
 def render_photo_list():
 	rendered = ""
 	for i in (INPUT_FOLDER / "photos").iterdir():
-		item = '<img src="/photos/{}" />'.format(i.name)
+		item = '<div class="col-3">'
+		item += '<img class="img-thumbnail" src="/photos/{}" />'.format(i.name)
+		item += '</div>'
 		rendered += item
 	return rendered
 
@@ -116,7 +162,9 @@ app = create_app()
 def index():
 	with open("./templates/index.html") as f:
 		full_text = f.read().replace("$USER_LIST", render_user_list()) \
-							.replace("$PHOTO_LIST", render_photo_list())
+							.replace("$TARGET_USER", target_user.full_name) \
+							.replace("$PHOTO_LIST", render_photo_list()) \
+							.replace("$USER_CONVERSATIONS", render_conversations())
 		return full_text
 
 @app.route("/photos/<filename>")
