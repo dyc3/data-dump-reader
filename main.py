@@ -186,10 +186,26 @@ def render_photo_list():
 		item = '<div class="card col-3">'
 		item += '<img class="img-thumbnail" src="/photos/{}" />'.format(i.name)
 		item += '<div>'
-		for key, value in exif.items():
-			if key == "MakerNote":
-				continue
-			item += '{} = {}<br />'.format(key, value)
+		# display all EXIF data
+		# for key, value in exif.items():
+		# 	if key == "MakerNote":
+		# 		continue
+		# 	item += '{} = {}<br />'.format(key, value)
+
+		# display only the EXIF data that really matters
+		if "DateTimeOriginal" in exif or "DateTimeDigitized" in exif:
+			item += '<span>DateTime: {}</span><br>'.format(exif["DateTimeOriginal"] or exif["DateTimeDigitized"])
+		if "Latitude" in exif:
+			item += '<span>Latitude: {}</span><br>'.format(exif["Latitude"])
+		if "Longitude" in exif:
+			item += '<span>Longitude: {}</span><br>'.format(exif["Longitude"])
+		if "Make" in exif:
+			item += '<span>Make: {}</span><br>'.format(exif["Make"])
+		if "Model" in exif:
+			item += '<span>Model: {}</span><br>'.format(exif["Model"])
+		if "Software" in exif:
+			item += '<span>Software: {}</span><br>'.format(exif["Software"])
+
 		item += '</div>'
 		item += '</div>'
 		rendered += item
