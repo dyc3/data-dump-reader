@@ -71,6 +71,34 @@ def get_all_user_ids(source_path: Path):
 	return user_ids
 
 def get_full_name_facebook(user_id):
+	# FIXME: THIS IS TEMPORARY, because facebook started blocking us
+	tmp_user_dict = {
+		"100010277648316": "William Brown",
+		"100010277648319": "Luke Smith",
+		"100010277648320": "Bob Doe",
+		"100010277648321": "Adreian Burke",
+		"100010277648322": "Eukarilis Cedeño",
+		"100010277648323": "Paula Thomas",
+		"100010277648324": "Leandro Martins",
+		"100010277648326": "Luis Ramirez Martinez",
+		"100010277648327": "Alejandra Cobos",
+		"100010277648328": "Oso Vieyra",
+		"100010277648329": "علاوي حسين الصالحي",
+		"100010277648330": "John Doe",
+		"100010277648331": "Amy Lucas",
+		"100010277648332": "Josefina Payva",
+		"100010277648333": "John Jones",
+		"100010277648334": "Sharon de la Cruz",
+		"100010277648335": "حمزة حازم",
+		"100010277648336": "Mayte Luna González",
+		"100010277648337": "Santhoshkannur Santhoshkannur",
+		"100010277648338": "Will Smith",
+		"100010277648339": "Nanou Brunetta",
+	}
+
+	if user_id in tmp_user_dict:
+		return tmp_user_dict[user_id]
+
 	resp = requests.get("https://www.facebook.com/" + str(user_id))
 	if resp.status_code != 200:
 		print("failed to get full name for {}, got response {}".format(user_id, resp.status_code))
@@ -227,6 +255,11 @@ def index():
 							.replace("$PHOTO_LIST", render_photo_list()) \
 							.replace("$USER_CONVERSATIONS", render_conversations())
 		return full_text
+
+@app.route("/icon.png")
+def get_icon_photo():
+	with open("./templates/icon.png", "rb") as f:
+		return f.read()
 
 @app.route("/photos/<filename>")
 def get_photo(filename):
