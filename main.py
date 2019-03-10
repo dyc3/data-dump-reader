@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import PIL.ExifTags
+import PIL.Image
 from flask import Flask
 from pathlib import Path
 import requests, json
@@ -13,8 +14,13 @@ messages = []
 
 def get_exif(string): #string is image root
 	img = PIL.Image.open(string)
-	exif_data = img._getexif()
-	return exif_data
+	# exif_data = img._getexif().items()
+	exif = {
+		PIL.ExifTags.TAGS[k]: v
+		for k, v in img._getexif().items()
+		if k in PIL.ExifTags.TAGS
+	}
+	return exif
 
 class User(object):
 	def __init__(self):
@@ -144,8 +150,14 @@ def render_conversations():
 def render_photo_list():
 	rendered = ""
 	for i in (INPUT_FOLDER / "photos").iterdir():
-		item = '<div class="col-3">'
+		exif = get_exif(i) if i.suffix.lower() in [".jpg", ".jpeg", ".jpe"] else ""
+
+		item = '<div class="card col-3">'
 		item += '<img class="img-thumbnail" src="/photos/{}" />'.format(i.name)
+		item += '<div>'
+		for key, value in exif:
+			item += '{} = {}<br />'.format(key, value)
+		item += '</div>'
 		item += '</div>'
 		rendered += item
 	return rendered
