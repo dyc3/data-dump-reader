@@ -2,7 +2,7 @@
 import PIL.ExifTags
 from flask import Flask
 from pathlib import Path
-import requests
+import requests, json
 from bs4 import BeautifulSoup
 import watson
 
@@ -123,6 +123,10 @@ def index():
 def get_photo(filename):
 	with (INPUT_FOLDER / "photos" / filename).open("rb") as f:
 		return f.read()
+
+@app.route("/messages/<user_id>")
+def get_messages(user_id):
+	return json.dumps(get_coversation_with(get_user_by_id(user_id)))
 
 if __name__ == "__main__":
 	app.run()
