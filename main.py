@@ -4,6 +4,7 @@ from flask import Flask
 from pathlib import Path
 import requests
 from bs4 import BeautifulSoup
+import watson
 
 INPUT_FOLDER = Path("./sample/") # TODO: let the user specify folder
 
@@ -26,8 +27,25 @@ class Message(object):
 		self.to_user_id = None
 		self.text = ""
 
-	def get_from_user() -> User:
-		pass
+	def get_from_user(self) -> User:
+		return get_user_by_id(self.from_user_id)
+
+	def get_to_user(self) -> User:
+		return get_user_by_id(self.to_user_id)
+
+def get_user_by_id(user_id):
+	for u in users:
+		if u.id == user_id:
+			return u
+	return None
+
+def get_coversation_with(user):
+	convo = []
+	for m in messages:
+		if m.from_user_id == user.id or m.to_user_id == user.id:
+			convo += [m]
+	return convo
+
 
 def get_all_user_ids(source_path: Path):
 	user_ids = []
