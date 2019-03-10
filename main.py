@@ -150,12 +150,18 @@ def render_conversations():
 def render_photo_list():
 	rendered = ""
 	for i in (INPUT_FOLDER / "photos").iterdir():
-		exif = get_exif(i) if i.suffix.lower() in [".jpg", ".jpeg", ".jpe"] else ""
+		try:
+			exif = get_exif(i) if i.suffix.lower() in [".jpg", ".jpeg", ".jpe"] else {}
+		except:
+			print("failed to parse exif data for", i.name)
+			exif = {}
 
 		item = '<div class="card col-3">'
 		item += '<img class="img-thumbnail" src="/photos/{}" />'.format(i.name)
 		item += '<div>'
-		for key, value in exif:
+		for key, value in exif.items():
+			if key == "MakerNote":
+				continue
 			item += '{} = {}<br />'.format(key, value)
 		item += '</div>'
 		item += '</div>'
